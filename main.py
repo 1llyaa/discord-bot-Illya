@@ -1,6 +1,13 @@
 import discord
 import toml
 
+class MyClient(discord.Client):
+		async def on_ready(self):
+			print(f'Logged on as {self.user}!')
+
+		async def on_message(self, message):
+            print(f'{message.author}: {message.content}')
+
 
 def load_config(config_name = "config.toml"):
 	with open(config_name, "r") as f:
@@ -11,17 +18,6 @@ def load_config(config_name = "config.toml"):
 
 def main():
 	token = load_config()
-
-	class MyClient(discord.Client):
-		async def on_ready(self):
-			print(f'Logged on as {self.user}!')
-
-		async def on_message(self, message):
-			if str(message.author) == "1llya":
-				print("HAHAHAHA")
-			else:
-				print(f'{message.author}: {message.content}')
-				print(type(message.author))
 
 	intents = discord.Intents.default()
 	intents.message_content = True
