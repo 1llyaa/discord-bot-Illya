@@ -4,7 +4,7 @@ from discord.ext import commands
 import toml
 
 bot_avatar_img = "https://cdn.discordapp.com/attachments/1071136297533579334/1219639688026132553/1llya_AI_avatar_Men_Czech_nationality_has_glassses_on_face_litt_ce1b968d-0ce3-4157-a616-a001c51d8642.png?ex=660c08f9&is=65f993f9&hm=0c5076e7006684155e9a49ffc942b41107a46322d0eb00e18feaa7dff14c6295&"
-bot = commands.Bot(command_prefix=".", intents=discord.Intents.all())
+bot = commands.Bot(command_prefix=".", help_command=None ,intents=discord.Intents.all())
 bot_channel_id = 786984140234555402
 
 
@@ -22,6 +22,7 @@ def get_faceit_data_embed(game:str, nickname: str):
     cs_elo_data = requests.get(url)
     
     if cs_elo_data.status_code == 200:
+        print("response status code 200")
         cs_elo_data = cs_elo_data.json()
         # stats
         elo = int(cs_elo_data['elo'])
@@ -95,18 +96,20 @@ async def hello(ctx):
 
 
 @bot.command()
-async def commands(ctx):
+async def help(ctx):
 
     embed = discord.Embed(
         colour=discord.colour.parse_hex_number("ff0008"),
         title="**Commands you are or will be able to use**",
         description="**.hello** - Introduction of bot\n"
-                    "**.commands** - Showing all commands of a bot\n"
+                    "**.help** - Show this embed\n"
                     "**.cs2_elo** <nickmane> - Show elo on cs2 faceit of certain player\n"
-                    "**.csgo_elo** <nickmane> - Show elo on csgo faceit of certain player"
+                    "**.csgo_elo** <nickmane> - Show elo on csgo faceit of certain player\n"
+                    "**__.valorant_rank__** - Show valorant rank"
     )
     embed.set_author(name="1llya's bot")
     embed.set_thumbnail(url=bot_avatar_img)
+    embed.set_footer(text=f"Commands with underline will be avalible in the future")
 
     await ctx.send(embed=embed)
 
