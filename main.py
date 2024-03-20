@@ -103,8 +103,8 @@ async def help(ctx):
         title="**Commands you are or will be able to use**",
         description="**.hello** - Introduction of bot\n"
                     "**.help** - Show this embed\n"
-                    "**.cs2_elo** <nickmane> - Show elo on cs2 faceit of certain player\n"
-                    "**.csgo_elo** <nickmane> - Show elo on csgo faceit of certain player\n"
+                    "**.cs2_elo** `<nickmane>` - Show elo on cs2 faceit of certain player\n"
+                    "**.csgo_elo** `<nickmane>` - Show elo on csgo faceit of certain player\n"
                     "**__.valorant_rank__** - Show valorant rank"
     )
     embed.set_author(name="1llya's bot")
