@@ -20,16 +20,18 @@ def get_faceit_data_embed(game:str, nickname: str):
     # cs2 data fetch
     url = f"https://api.satont.ru/faceit?nick={nickname}&game={game}&timezone=Europe%2FPrague"
     cs_elo_data = requests.get(url)
-    cs_elo_data = cs_elo_data.json()
-    # stats
-    elo = int(cs_elo_data['elo'])
-    kd = cs_elo_data['stats']['lifetime']['Average K/D Ratio']
-    winrate = cs_elo_data['stats']['lifetime']['Win Rate %']
-    matches = cs_elo_data['stats']['lifetime']['Matches']
-    wins = cs_elo_data['stats']['lifetime']['Wins']
-    loses = int(matches) - int(wins)
     
-    embed = discord.Embed(
+    if cs_elo_data.status_code == 200:
+        cs_elo_data = cs_elo_data.json()
+        # stats
+        elo = int(cs_elo_data['elo'])
+        kd = cs_elo_data['stats']['lifetime']['Average K/D Ratio']
+        winrate = cs_elo_data['stats']['lifetime']['Win Rate %']
+        matches = cs_elo_data['stats']['lifetime']['Matches']
+        wins = cs_elo_data['stats']['lifetime']['Wins']
+        loses = int(matches) - int(wins)
+
+        embed = discord.Embed(
         colour=discord.colour.parse_hex_number("ff0008"),
         title=f"**{nickname}**",
         url=f"https://faceit.com/en/players/{nickname}",
@@ -40,26 +42,35 @@ def get_faceit_data_embed(game:str, nickname: str):
                     f"**Loses** - {loses}\n"
                     f"**Winrate** - {winrate}%")
 
-    if elo > 2001:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit10.png")
-    elif elo > 1751:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit9.png")
-    elif elo > 1531:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit8.png")
-    elif elo > 1351:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit7.png")
-    elif elo > 1201:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit6.png")
-    elif elo > 1051:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit5.png")
-    elif elo > 901:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit4.png")
-    elif elo > 751:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit3.png")
-    elif elo > 501:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit2.png")
-    elif elo > 100:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit1.png")
+        if elo > 2001:
+            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit10.png")
+        elif elo > 1751:
+            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit9.png")
+        elif elo > 1531:
+            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit8.png")
+        elif elo > 1351:
+            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit7.png")
+        elif elo > 1201:
+            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit6.png")
+        elif elo > 1051:
+            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit5.png")
+        elif elo > 901:
+            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit4.png")
+        elif elo > 751:
+            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit3.png")
+        elif elo > 501:
+            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit2.png")
+        elif elo > 100:
+            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit1.png")
+
+
+    else:
+        embed = discord.Embed(
+        colour=discord.colour.parse_hex_number("ff0008"),
+        title=f"**{nickname}**",
+        description=f"**Player was not found**\n"
+        f"Possible causes: {nickname} have never played {game} or player under this nickname doesnt exist"
+        )
 
     return embed
 
