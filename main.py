@@ -7,12 +7,62 @@ bot_avatar_img = "https://cdn.discordapp.com/attachments/1071136297533579334/121
 bot = commands.Bot(command_prefix=".", intents=discord.Intents.all())
 bot_channel_id = 786984140234555402
 
+
+
 def load_config():
     with open("./config.toml", "r") as f:
         data = toml.load(f)
 
         token = data['config']['token']
     return token
+
+def get_faceit_data_embed(game:str, nickname: str):
+    # cs2 data fetch
+    url = f"https://api.satont.ru/faceit?nick={nickname}&game={game}&timezone=Europe%2FPrague"
+    cs_elo_data = requests.get(url)
+    cs_elo_data = cs_elo_data.json()
+    # stats
+    elo = int(cs_elo_data['elo'])
+    kd = cs_elo_data['stats']['lifetime']['Average K/D Ratio']
+    winrate = cs_elo_data['stats']['lifetime']['Win Rate %']
+    matches = cs_elo_data['stats']['lifetime']['Matches']
+    wins = cs_elo_data['stats']['lifetime']['Wins']
+    loses = int(matches) - int(wins)
+    
+    embed = discord.Embed(
+        colour=discord.colour.parse_hex_number("ff0008"),
+        title=f"**{nickname}**",
+        url=f"https://faceit.com/en/players/{nickname}",
+        description=f"**Elo** - {str(elo)}\n"
+                    f"**Avg. K/D** - {kd}\n"
+                    f"**Matches** - {matches}\n"
+                    f"**Wins** - {wins}\n"
+                    f"**Loses** - {loses}\n"
+                    f"**Winrate** - {winrate}%")
+
+    if elo > 2001:
+        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit10.png")
+    elif elo > 1751:
+        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit9.png")
+    elif elo > 1531:
+        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit8.png")
+    elif elo > 1351:
+        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit7.png")
+    elif elo > 1201:
+        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit6.png")
+    elif elo > 1051:
+        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit5.png")
+    elif elo > 901:
+        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit4.png")
+    elif elo > 751:
+        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit3.png")
+    elif elo > 501:
+        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit2.png")
+    elif elo > 100:
+        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit1.png")
+
+    return embed
+
 @bot.event
 async def on_ready():
     print("Hello, bot is ready!")
@@ -51,112 +101,14 @@ async def commands(ctx):
 
 @bot.command()
 async def cs2_elo(ctx, nickname: str):
-    # cs2 data fetch
-    url = f"https://api.satont.ru/faceit?nick={nickname}&game=cs2&timezone=Europe%2FPrague"
-    cs_elo_data = requests.get(url)
-    cs_elo_data = cs_elo_data.json()
-    # stats
-    elo = int(cs_elo_data['elo'])
-    kd = cs_elo_data['stats']['lifetime']['Average K/D Ratio']
-    winrate = cs_elo_data['stats']['lifetime']['Win Rate %']
-    matches = cs_elo_data['stats']['lifetime']['Matches']
-    wins = cs_elo_data['stats']['lifetime']['Wins']
-    loses = int(matches) - int(wins)
-    # TODO Check response status code example if status code is not 200 tell about it to user of bot
-
-
-
-    # embed creation
-    embed = discord.Embed(
-        colour=discord.colour.parse_hex_number("ff0008"),
-        title=f"**{nickname}**",
-        url=f"https://faceit.com/en/players/{nickname}",
-        description=f"**Elo** - {str(elo)}\n"
-                    f"**Avg. K/D** - {kd}\n"
-                    f"**Matches** - {matches}\n"
-                    f"**Wins** - {wins}\n"
-                    f"**Loses** - {loses}\n"
-                    f"**Winrate** - {winrate}%"
-    )
-    # determinates thumbnail image
-    if elo > 2001:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit10.png")
-    elif elo > 1751:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit9.png")
-    elif elo > 1531:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit8.png")
-    elif elo > 1351:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit7.png")
-    elif elo > 1201:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit6.png")
-    elif elo > 1051:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit5.png")
-    elif elo > 901:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit4.png")
-    elif elo > 751:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit3.png")
-    elif elo > 501:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit2.png")
-    elif elo > 100:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit1.png")
-
-
-
+    # cs2
+    embed = get_faceit_data_embed("cs2", nickname)
     await ctx.send(embed=embed)
 
 @bot.command()
 async def csgo_elo(ctx, nickname: str):
     # cs2 data fetch
-    url = f"https://api.satont.ru/faceit?nick={nickname}&game=csgo&timezone=Europe%2FPrague"
-    cs_elo_data = requests.get(url)
-    cs_elo_data = cs_elo_data.json()
-    # stats
-    elo = int(cs_elo_data['elo'])
-    kd = cs_elo_data['stats']['lifetime']['Average K/D Ratio']
-    winrate = cs_elo_data['stats']['lifetime']['Win Rate %']
-    matches = cs_elo_data['stats']['lifetime']['Matches']
-    wins = cs_elo_data['stats']['lifetime']['Wins']
-    loses = int(matches) - int(wins)
-    # TODO Check response status code example if status code is not 200 tell about it to user of bot
-
-
-
-    # embed creation
-    embed = discord.Embed(
-        colour=discord.colour.parse_hex_number("ff0008"),
-        title=f"**{nickname}**",
-        url=f"https://faceit.com/en/players/{nickname}",
-        description=f"**Elo** - {str(elo)}\n"
-                    f"**Avg. K/D** - {kd}\n"
-                    f"**Matches** - {matches}\n"
-                    f"**Wins** - {wins}\n"
-                    f"**Loses** - {loses}\n"
-                    f"**Winrate** - {winrate}%"
-    )
-    # determinates thumbnail image
-    if elo > 2001:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit10.png")
-    elif elo > 1751:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit9.png")
-    elif elo > 1531:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit8.png")
-    elif elo > 1351:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit7.png")
-    elif elo > 1201:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit6.png")
-    elif elo > 1051:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit5.png")
-    elif elo > 901:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit4.png")
-    elif elo > 751:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit3.png")
-    elif elo > 501:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit2.png")
-    elif elo > 100:
-        embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit1.png")
-
-
-
+    embed = get_faceit_data_embed("csgo", nickname)
     await ctx.send(embed=embed)
 
 def main():
