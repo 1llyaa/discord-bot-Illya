@@ -84,30 +84,29 @@ async def on_ready():
     await channel.send("Hello bot is ready to work!")
 
 @bot.command()
-async def coin_toss(ctx):
+async def yesno(ctx):
     random_number = random.randint(0, 1)
-    random_list = []
-
-    for i in range(1, 27):
-        random_list.append(random.randint(0, 1))
 
     up = ":thumbsup:"
     down = ":thumbsdown:"
 
     message = await ctx.send(up)
 
-    for i in range(1, 27):
-        if random_list[i - 1] == 0:
-            await message.edit(content=up * i)
-            await asyncio.sleep(0.1)
-        else:
-            await message.edit(content=up * i)
-            await asyncio.sleep(0.1)
+    await message.edit(content=up)
+    await asyncio.sleep(0.3)
+    await message.edit(content=up + down)
+    await asyncio.sleep(0.3)
+    await message.edit(content=up + down + up)
+    await asyncio.sleep(0.3)
+    await message.edit(content=up + down + up + down)
+    await asyncio.sleep(0.3)
+    await message.edit(content=up + down + up + down + up)
+    await asyncio.sleep(0.3)
     
     if random_number == 0:
-        await message.edit(content=":thumbsup:")
+        await message.edit(content="Result: :thumbsup:")
     else:
-        await message.edit(content=":thumbsdown:")
+        await message.edit(content="Result: :thumbsdown:")
 
     # for multiplier in range(1, 10):
 
@@ -140,7 +139,7 @@ async def help(ctx):
                     "**.cs2_elo** `<nickmane>` - Show elo on cs2 faceit of certain player\n"
                     "**.csgo_elo** `<nickmane>` - Show elo on csgo faceit of certain player\n"
                     "**__.valorant_rank__** - Show valorant rank\n"
-                    "**.coin_toss** - Coin toss 50/50 :coin:"
+                    "**.yesno** - Yes/no :thumbsup:/:thumbsdown:"
     )
 
     embed.set_author(name="1llya's bot")
