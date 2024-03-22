@@ -85,24 +85,24 @@ async def on_ready():
 
 @bot.command()
 async def coin_toss(ctx):
-    random_number = random.randint(0, 1) 
-    
-    
+    random_number = random.randint(0, 1)
+    random_list = []
 
-    embed = discord.Embed(
-            colour=discord.colour.parse_hex_number("ff0008"),
-            title=f"Coin toss result: "
-            )
+    for i in range(1, 27):
+        random_list.append(random.randint(0, 1))
 
-    coin = ":coin:"
+    up = ":thumbsup:"
+    down = ":thumbsdown:"
 
-    if for i in range(0, 10) i % 2 == 0:  
+    message = await ctx.send(up)
 
-    message = await ctx.send(coin)
-   
-    for multiplier in range(1, 27):
-        await asyncio.sleep(0.1)
-        await message.edit(content=coin * multiplier)
+    for i in range(1, 27):
+        if random_list[i - 1] == 0:
+            await message.edit(content=up * i)
+            await asyncio.sleep(0.1)
+        else:
+            await message.edit(content=up * i)
+            await asyncio.sleep(0.1)
     
     if random_number == 0:
         await message.edit(content=":thumbsup:")
