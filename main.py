@@ -1,5 +1,7 @@
 import discord
 import requests
+import random
+import asyncio
 from discord.ext import commands
 import toml
 
@@ -82,6 +84,38 @@ async def on_ready():
     await channel.send("Hello bot is ready to work!")
 
 @bot.command()
+async def coin_toss(ctx):
+    random_number = random.randint(0, 1) 
+    
+    
+
+    embed = discord.Embed(
+            colour=discord.colour.parse_hex_number("ff0008"),
+            title=f"Coin toss result: "
+            )
+
+    coin = ":coin:"
+
+    if for i in range(0, 10) i % 2 == 0:  
+
+    message = await ctx.send(coin)
+   
+    for multiplier in range(1, 27):
+        await asyncio.sleep(0.1)
+        await message.edit(content=coin * multiplier)
+    
+    if random_number == 0:
+        await message.edit(content=":thumbsup:")
+    else:
+        await message.edit(content=":thumbsdown:")
+
+    # for multiplier in range(1, 10):
+
+        
+
+
+
+@bot.command()
 async def hello(ctx):
     embed = discord.Embed(
             colour=discord.colour.parse_hex_number("ff0008"),
@@ -105,8 +139,10 @@ async def help(ctx):
                     "**.help** - Show this embed\n"
                     "**.cs2_elo** `<nickmane>` - Show elo on cs2 faceit of certain player\n"
                     "**.csgo_elo** `<nickmane>` - Show elo on csgo faceit of certain player\n"
-                    "**__.valorant_rank__** - Show valorant rank"
+                    "**__.valorant_rank__** - Show valorant rank\n"
+                    "**.coin_toss** - Coin toss 50/50 :coin:"
     )
+
     embed.set_author(name="1llya's bot")
     embed.set_thumbnail(url=bot_avatar_img)
     embed.set_footer(text=f"Commands with underline will be avalible in the future")
