@@ -135,7 +135,7 @@ async def yesno(ctx):
 async def hello(ctx):
     embed = discord.Embed(
             colour=discord.colour.parse_hex_number("ff0008"),
-            description="Hello, my name is 1llya's\nIm his first bot so be humble\nYou can see my commands by typing **.commands**",
+            description="Hello, my name is 1llya's\nIm his first bot so be humble\nYou can see my commands by typing **.help**",
             title="Info about me"
             )
     embed.set_footer(text="If you click my name you can see 1llya's Github")
@@ -155,8 +155,11 @@ async def help(ctx):
                     "**.help** - Show this embed\n"
                     "**.cs2_elo** `<nickmane>` - Show elo on cs2 faceit of certain player\n"
                     "**.csgo_elo** `<nickmane>` - Show elo on csgo faceit of certain player\n"
-                    "**__.valorant_rank__** - Show valorant rank\n"
                     "**.yesno** - Yes/no :thumbsup:/:thumbsdown:"
+                    "**__.valorant_rank__** - Show valorant rank\n"
+                    "**.quote_add** - adds quote to the server"
+                    "**.quote_random** - sends random quote"
+
     )
 
     embed.set_author(name="1llya's bot")
