@@ -91,17 +91,23 @@ async def yesno(ctx):
     down = ":thumbsdown:"
 
     message = await ctx.send(up)
-
-    await message.edit(content=up)
-    await asyncio.sleep(0.3)
-    await message.edit(content=up + down)
-    await asyncio.sleep(0.3)
-    await message.edit(content=up + down + up)
-    await asyncio.sleep(0.3)
-    await message.edit(content=up + down + up + down)
-    await asyncio.sleep(0.3)
-    await message.edit(content=up + down + up + down + up)
-    await asyncio.sleep(0.3)
+    # My code
+    # await message.edit(content=up)
+    # await asyncio.sleep(0.3)
+    # await message.edit(content=up + down)
+    # await asyncio.sleep(0.3)
+    # await message.edit(content=up + down + up)
+    # await asyncio.sleep(0.3)
+    # await message.edit(content=up + down + up + down)
+    # await asyncio.sleep(0.3)
+    # await message.edit(content=up + down + up + down + up)
+    # await asyncio.sleep(0.3)
+    # Chat gpts code based on my code
+    message_content = ""
+    for i in range(1, 6):
+        message_content += up if i % 2 != 0 else down
+        await message.edit(content=message_content)
+        await asyncio.sleep(0.3)
     
     if random_number == 0:
         await message.edit(content="Result: :thumbsup:")
