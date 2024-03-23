@@ -2,8 +2,14 @@ import discord
 import requests
 import random
 import asyncio
-from discord.ext import commands
+import datetime
 import toml
+from tinydb import TinyDB, Query
+from discord.ext import commands
+
+# current database is made just for one server, need to add function to check server id and create database based on server id.
+db = TinyDB("quotes.json")
+Todo = Query()
 
 bot_avatar_img = "https://cdn.discordapp.com/attachments/1071136297533579334/1219639688026132553/1llya_AI_avatar_Men_Czech_nationality_has_glassses_on_face_litt_ce1b968d-0ce3-4157-a616-a001c51d8642.png?ex=660c08f9&is=65f993f9&hm=0c5076e7006684155e9a49ffc942b41107a46322d0eb00e18feaa7dff14c6295&"
 bot = commands.Bot(command_prefix=".", help_command=None ,intents=discord.Intents.all())
@@ -17,6 +23,11 @@ def load_config():
 
         token = data['config']['token']
     return token
+
+def date():
+    date = datetime.datetime.now()
+    date = date.strftime("%d.%m.%Y")
+    return date
 
 def get_faceit_data_embed(game:str, nickname: str):
     # cs2 data fetch
@@ -153,6 +164,55 @@ async def help(ctx):
     embed.set_footer(text=f"Commands with underline will be avalible in the future")
 
     await ctx.send(embed=embed)
+
+@bot.command()
+async def quote_add(ctx, *arr):
+    quotes_per_user = 20
+    quote = ""
+    for words in arr:
+        quote += f"{words} "
+
+    quote = quote[:-1]
+    username = ctx.message.author.name
+
+    records_count = len(db.search(Todo["author"] == username))
+    # debug
+    # print(f"count of records for user {username}: {records_count}")
+
+    if records_count >= quotes_per_user:
+        await ctx.send("You have reached max count of quotes (5)")
+    else:
+        if len(quote) > 500:
+            await ctx.send("Quote is too long!!! Max lenght is 500")
+        else:
+            # debug
+            # print(f"username: {username} quote: {quote}")
+
+            db.insert({'author': username, 'quote': quote, 'date': date()})
+            await ctx.send("Quote was sucesfully added to server database")
+
+
+@bot.command()
+async def quote_random(ctx):
+    quotes = db.all()
+    random_quote = random.choice(quotes)
+    blank_space = "  "
+    # debug
+    print(quotes)
+    print(random.choice(quotes))
+    print(f"Author: {random_quote['author']}, Quote: {random_quote['quote']}, Date: {random_quote['date']}")
+
+    embed = discord.Embed(
+        colour=discord.colour.parse_hex_number("ff0008"),
+        description=f"*{random_quote['quote']}*",
+    )
+    embed.set_footer(text=f"{random_quote['date']}\n{blank_space * len(random_quote['quote'])} - {random_quote['author']}")
+    # embed.set_author(name=f"{random_quote['author']}")
+
+
+    await ctx.send(embed=embed)
+
+
 
 @bot.command()
 async def cs2_elo(ctx, nickname: str):
