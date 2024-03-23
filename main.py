@@ -157,7 +157,7 @@ async def help(ctx):
                     "**.csgo_elo** `<nickmane>` - Show elo on csgo faceit of certain player\n"
                     "**.yesno** - Yes/no :thumbsup:/:thumbsdown:"
                     "**__.valorant_rank__** - Show valorant rank\n"
-                    "**.quote_add** - adds quote to the server"
+                    "**.quote_add** - adds quote to the server\n"
                     "**.quote_random** - sends random quote"
 
     )
