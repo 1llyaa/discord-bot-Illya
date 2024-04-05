@@ -6,6 +6,7 @@ import datetime
 import toml
 from tinydb import TinyDB, Query
 from discord.ext import commands
+from bs4 import BeautifulSoup
 
 # current database is made just for one server, need to add function to check server id and create database based on server id.
 db = TinyDB("quotes.json")
@@ -28,6 +29,60 @@ def date():
     date = datetime.datetime.now()
     date = date.strftime("%d.%m.%Y")
     return date
+
+def get_gas_prices(city:str):
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    response = requests.post(f'https://www.mbenzin.cz/Ceny-benzinu-a-nafty/{city}', headers=headers)
+
+    parsed_site = response.text
+
+    soup = BeautifulSoup(parsed_site, "lxml")
+
+
+
+    # divs_names = soup.find_all("div", class_="col-10")
+    # divs_names_list = []
+    # for name in divs_names:
+    #     divs_names_list.append(name.text.strip().replace("\n", "-").replace("\r", "").replace("          ", " ".replace(",", " ")))
+    #
+    # print(divs_names_list)
+
+    # Names List
+    divs_names = soup.find_all("span", class_="font-s-11r")
+    divs_names_list = []
+    for name in divs_names:
+        divs_names_list.append(name.text)
+
+    divs_names_list = divs_names_list[: len(divs_names_list) - 3]
+    # # Debug
+    # print(divs_names_list)
+    # print(f"Names list lenght: {len(divs_names_list)}")
+
+    # Prices list
+    divs_prices = soup.find_all("div", class_="col text-center p-1")
+    divs_prices_list = []
+
+    for price in divs_prices:
+        divs_prices_list.append(price.text.strip().replace("\n", " "))
+
+    # code made by chatGPT
+    divs_prices_list = [' '.join(divs_prices_list[i:i+4]) for i in range(0, len(divs_prices_list), 4)]
+
+    # # debug
+    # print(f"Price list lenght: {len(divs_prices_list) / 4}")
+
+    # Adress list
+    span_city = soup.find_all("span", itemprop="addressLocality")
+    span_adress = soup.find_all("span", itemprop="streetAddress")
+    divs_adress_list = []
+
+    for count in range(len(span_city)):
+        divs_adress_list.append(f"{span_city[count].text} - {span_adress[count].text}")
+
+    final_list = []
+    for final in range(10):
+        final_list.append(f"{divs_names_list[final]}, {divs_adress_list[final]}\n{divs_prices_list[final]}")
+    return final_list
 
 def get_faceit_data_embed(game:str, nickname: str):
     # cs2 data fetch
@@ -158,7 +213,8 @@ async def help(ctx):
                     "**.yesno** - Yes/no :thumbsup:/:thumbsdown:\n"
                     "**__.valorant_rank__** - Show valorant rank\n"
                     "**.quote_add** - adds quote to the server\n"
-                    "**.quote_random** - sends random quote"
+                    "**.quote_random** - sends random quote\n"
+                    "**.gas_prices** `<city>` - sends gas prices in Czechia city. Example: __.gas_prices__ Praha"
 
     )
 
@@ -227,6 +283,29 @@ async def cs2_elo(ctx, nickname: str):
 async def csgo_elo(ctx, nickname: str):
     # cs2 data fetch
     embed = get_faceit_data_embed("csgo", nickname)
+    await ctx.send(embed=embed)
+
+@bot.command()
+async def gas_prices(ctx, *arr:str):
+    city = " ".join(arr)
+    gas_list = get_gas_prices(city)
+    description = ""
+    lines_separator = "☰"
+
+    for desc in range(len(gas_list)):
+        description += f"**{gas_list[desc]}**\n**{lines_separator * 40}**\n"
+
+    embed = discord.Embed(
+        colour=discord.colour.parse_hex_number("ff0008"),
+        title=f":fuelpump:Gas prices near city {city}",
+        description=description
+
+    )
+
+    embed.set_author(name="1llya's bot")
+    embed.set_thumbnail(url=bot_avatar_img)
+    embed.set_footer(text=f"Original website: https://www.mbenzin.cz")
+
     await ctx.send(embed=embed)
 
 def main():
