@@ -1,11 +1,10 @@
 import discord
-import requests
-import random
 import asyncio
-import datetime
 import toml
+import os
 from tinydb import TinyDB, Query
 from discord.ext import commands
+from discord import app_commands
 from bs4 import BeautifulSoup
 
 # current database is made just for one server, need to add function to check server id and create database based on server id.
@@ -13,9 +12,48 @@ db = TinyDB("quotes.json")
 Todo = Query()
 
 bot_avatar_img = "https://cdn.discordapp.com/attachments/1071136297533579334/1219639688026132553/1llya_AI_avatar_Men_Czech_nationality_has_glassses_on_face_litt_ce1b968d-0ce3-4157-a616-a001c51d8642.png?ex=660c08f9&is=65f993f9&hm=0c5076e7006684155e9a49ffc942b41107a46322d0eb00e18feaa7dff14c6295&"
-bot = commands.Bot(command_prefix=".", help_command=None ,intents=discord.Intents.all())
+bot = commands.Bot(command_prefix=".", help_command=None, intents=discord.Intents.all())
 bot_channel_id = 786984140234555402
 
+
+# class Menu(discord.ui.View):
+#     def __init__(self):
+#         super().__init__()
+#         self.value = None
+#
+#     @discord.ui.button(label="Send message", style=discord.ButtonStyle.grey)
+#     async def menu1(self, interaction: discord.Interaction, button: discord.ui.Button):
+#         await interaction.response.send_message("embed=embed")
+#
+#     @discord.ui.button(label="Edit message", style=discord.ButtonStyle.green)
+#     async def menu2(self, interaction: discord.Interaction, button: discord.ui.Button):
+#         await interaction.response.edit_message(content="This is edited message")
+#
+#     @discord.ui.button(label="Edited embed", style=discord.ButtonStyle.blurple)
+#     async def menu3(self, interaction: discord.Interaction, button: discord.ui.Button):
+#         embed = discord.Embed(color=discord.Color.random())
+#         embed.set_author(name="FOO")
+#         embed.add_field(name="Lol", value="Lol")
+#         await interaction.response.edit_message(embed=embed)
+#
+#     @discord.ui.button(label="Quit", style=discord.ButtonStyle.red)
+#     async def menu4(self, interaction: discord.Interaction, button: discord.ui.Button):
+#         embed = discord.Embed(color=discord.Color.red())
+#         embed.set_author(name="Byebye")
+#         embed.add_field(name="Byebye", value="Do well")
+#         await interaction.response.edit_message(embed=embed)
+#         self.value = False
+#         self.stop()
+
+async def load():
+    for filename in os.listdir('./cogs'):
+        if filename.endswith(".py"):
+            await bot.load_extension(f'cogs.{filename[:-3]}')
+# @bot.command()
+# async def menu(ctx):
+#     view = Menu()
+#     view.add_item(discord.ui.Button(label="URL Button", style=discord.ButtonStyle.link, url="https://aitek.digital"))
+#     await ctx.reply("Hello this is menu", view=view)
 
 
 def load_config():
@@ -25,294 +63,24 @@ def load_config():
         token = data['config']['token']
     return token
 
-def date():
-    date = datetime.datetime.now()
-    date = date.strftime("%d.%m.%Y")
-    return date
-
-def get_gas_prices(city:str):
-    headers = {'User-Agent': 'Mozilla/5.0'}
-    response = requests.post(f'https://www.mbenzin.cz/Ceny-benzinu-a-nafty/{city}', headers=headers)
-
-    parsed_site = response.text
-
-    soup = BeautifulSoup(parsed_site, "lxml")
-
-
-
-    # divs_names = soup.find_all("div", class_="col-10")
-    # divs_names_list = []
-    # for name in divs_names:
-    #     divs_names_list.append(name.text.strip().replace("\n", "-").replace("\r", "").replace("          ", " ".replace(",", " ")))
-    #
-    # print(divs_names_list)
-
-    # Names List
-    divs_names = soup.find_all("span", class_="font-s-11r")
-    divs_names_list = []
-    for name in divs_names:
-        divs_names_list.append(name.text)
-
-    divs_names_list = divs_names_list[: len(divs_names_list) - 3]
-    # # Debug
-    # print(divs_names_list)
-    # print(f"Names list lenght: {len(divs_names_list)}")
-
-    # Prices list
-    divs_prices = soup.find_all("div", class_="col text-center p-1")
-    divs_prices_list = []
-
-    for price in divs_prices:
-        divs_prices_list.append(price.text.strip().replace("\n", " "))
-
-    # code made by chatGPT
-    divs_prices_list = [' '.join(divs_prices_list[i:i+4]) for i in range(0, len(divs_prices_list), 4)]
-
-    # # debug
-    # print(f"Price list lenght: {len(divs_prices_list) / 4}")
-
-    # Adress list
-    span_city = soup.find_all("span", itemprop="addressLocality")
-    span_adress = soup.find_all("span", itemprop="streetAddress")
-    divs_adress_list = []
-
-    for count in range(len(span_city)):
-        divs_adress_list.append(f"{span_city[count].text} - {span_adress[count].text}")
-
-    final_list = []
-    for final in range(10):
-        final_list.append(f"{divs_names_list[final]}, {divs_adress_list[final]}\n{divs_prices_list[final]}")
-    return final_list
-
-def get_faceit_data_embed(game:str, nickname: str):
-    # cs2 data fetch
-    url = f"https://api.satont.ru/faceit?nick={nickname}&game={game}&timezone=Europe%2FPrague"
-    cs_elo_data = requests.get(url)
-    
-    if cs_elo_data.status_code == 200:
-        print("response status code 200")
-        cs_elo_data = cs_elo_data.json()
-        # stats
-        elo = int(cs_elo_data['elo'])
-        kd = cs_elo_data['stats']['lifetime']['Average K/D Ratio']
-        winrate = cs_elo_data['stats']['lifetime']['Win Rate %']
-        matches = cs_elo_data['stats']['lifetime']['Matches']
-        wins = cs_elo_data['stats']['lifetime']['Wins']
-        loses = int(matches) - int(wins)
-
-        embed = discord.Embed(
-        colour=discord.colour.parse_hex_number("ff0008"),
-        title=f"**{nickname}**",
-        url=f"https://faceit.com/en/players/{nickname}",
-        description=f"**Elo** - {str(elo)}\n"
-                    f"**Avg. K/D** - {kd}\n"
-                    f"**Matches** - {matches}\n"
-                    f"**Wins** - {wins}\n"
-                    f"**Loses** - {loses}\n"
-                    f"**Winrate** - {winrate}%")
-
-        if elo > 2001:
-            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit10.png")
-        elif elo > 1751:
-            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit9.png")
-        elif elo > 1531:
-            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit8.png")
-        elif elo > 1351:
-            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit7.png")
-        elif elo > 1201:
-            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit6.png")
-        elif elo > 1051:
-            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit5.png")
-        elif elo > 901:
-            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit4.png")
-        elif elo > 751:
-            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit3.png")
-        elif elo > 501:
-            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit2.png")
-        elif elo > 100:
-            embed.set_thumbnail(url="https://leetify.com/assets/images/rank-icons/faceit1.png")
-
-
-    else:
-        embed = discord.Embed(
-        colour=discord.colour.parse_hex_number("ff0008"),
-        title=f"**{nickname}**",
-        description=f"**Player was not found**\n"
-        f"Possible causes: {nickname} have never played {game} or player under this nickname doesnt exist"
-        )
-
-    return embed
 
 @bot.event
 async def on_ready():
     print("Hello, bot is ready!")
     channel = bot.get_channel(bot_channel_id)
     await channel.send("Hello bot is ready to work!")
-
-@bot.command()
-async def yesno(ctx):
-    random_number = random.randint(0, 1)
-
-    up = ":thumbsup:"
-    down = ":thumbsdown:"
-
-    message = await ctx.send(up)
-    # My code
-    # await message.edit(content=up)
-    # await asyncio.sleep(0.3)
-    # await message.edit(content=up + down)
-    # await asyncio.sleep(0.3)
-    # await message.edit(content=up + down + up)
-    # await asyncio.sleep(0.3)
-    # await message.edit(content=up + down + up + down)
-    # await asyncio.sleep(0.3)
-    # await message.edit(content=up + down + up + down + up)
-    # await asyncio.sleep(0.3)
-    # Chat gpts code based on my code
-    message_content = ""
-    for i in range(1, 6):
-        message_content += up if i % 2 != 0 else down
-        await message.edit(content=message_content)
-        await asyncio.sleep(0.3)
-    
-    if random_number == 0:
-        await message.edit(content="Result: :thumbsup:")
-    else:
-        await message.edit(content="Result: :thumbsdown:")
-
-    # for multiplier in range(1, 10):
-
-        
+    try:
+        synced = await bot.tree.sync()
+        print(f"Synced {len(synced)} commands")
+    except Exception as e:
+        print(f"Error syncing commands: {e}")
 
 
-
-@bot.command()
-async def hello(ctx):
-    embed = discord.Embed(
-            colour=discord.colour.parse_hex_number("ff0008"),
-            description="Hello, my name is 1llya's\nIm his first bot so be humble\nYou can see my commands by typing **.help**",
-            title="Info about me"
-            )
-    embed.set_footer(text="If you click my name you can see 1llya's Github")
-    embed.set_author(name="1llya", url="https://github.com/1llyaa/discord-bot-Illya")
-    embed.set_thumbnail(url=bot_avatar_img)
-
-    await ctx.send(embed=embed)
-
-
-@bot.command()
-async def help(ctx):
-
-    embed = discord.Embed(
-        colour=discord.colour.parse_hex_number("ff0008"),
-        title="**Commands you are or will be able to use**",
-        description="**.hello** - Introduction of bot\n"
-                    "**.help** - Show this embed\n"
-                    "**.cs2_elo** `<nickmane>` - Show elo on cs2 faceit of certain player\n"
-                    "**.csgo_elo** `<nickmane>` - Show elo on csgo faceit of certain player\n"
-                    "**.yesno** - Yes/no :thumbsup:/:thumbsdown:\n"
-                    "**__.valorant_rank__** - Show valorant rank\n"
-                    "**.quote_add** - adds quote to the server\n"
-                    "**.quote_random** - sends random quote\n"
-                    "**.gas_prices** `<city>` - sends gas prices in Czechia city. Example: __.gas_prices__ Praha"
-
-    )
-
-    embed.set_author(name="1llya's bot")
-    embed.set_thumbnail(url=bot_avatar_img)
-    embed.set_footer(text=f"Commands with underline will be avalible in the future")
-
-    await ctx.send(embed=embed)
-
-@bot.command()
-async def quote_add(ctx, *arr):
-    quotes_per_user = 20
-    quote = ""
-    for words in arr:
-        quote += f"{words} "
-
-    quote = quote[:-1]
-    username = ctx.message.author.name
-
-    records_count = len(db.search(Todo["author"] == username))
-    # debug
-    # print(f"count of records for user {username}: {records_count}")
-
-    if records_count >= quotes_per_user:
-        await ctx.send("You have reached max count of quotes (5)")
-    else:
-        if len(quote) > 500:
-            await ctx.send("Quote is too long!!! Max lenght is 500")
-        else:
-            # debug
-            # print(f"username: {username} quote: {quote}")
-
-            db.insert({'author': username, 'quote': quote, 'date': date()})
-            await ctx.send("Quote was sucesfully added to server database")
-
-
-@bot.command()
-async def quote_random(ctx):
-    quotes = db.all()
-    random_quote = random.choice(quotes)
-    blank_space = "  "
-    # debug
-    print(quotes)
-    print(random.choice(quotes))
-    print(f"Author: {random_quote['author']}, Quote: {random_quote['quote']}, Date: {random_quote['date']}")
-
-    embed = discord.Embed(
-        colour=discord.colour.parse_hex_number("ff0008"),
-        description=f"*{random_quote['quote']}*",
-    )
-    embed.set_footer(text=f"{random_quote['date']}\n{blank_space * len(random_quote['quote'])} - {random_quote['author']}")
-    # embed.set_author(name=f"{random_quote['author']}")
-
-
-    await ctx.send(embed=embed)
-
-
-
-@bot.command()
-async def cs2_elo(ctx, nickname: str):
-    # cs2
-    embed = get_faceit_data_embed("cs2", nickname)
-    await ctx.send(embed=embed)
-
-@bot.command()
-async def csgo_elo(ctx, nickname: str):
-    # cs2 data fetch
-    embed = get_faceit_data_embed("csgo", nickname)
-    await ctx.send(embed=embed)
-
-@bot.command()
-async def gas_prices(ctx, *arr:str):
-    city = " ".join(arr)
-    gas_list = get_gas_prices(city)
-    description = ""
-    lines_separator = "☰"
-
-    for desc in range(len(gas_list)):
-        description += f"**{gas_list[desc]}**\n**{lines_separator * 40}**\n"
-
-    embed = discord.Embed(
-        colour=discord.colour.parse_hex_number("ff0008"),
-        title=f":fuelpump:Gas prices near city {city}",
-        description=description
-
-    )
-
-    embed.set_author(name="1llya's bot")
-    embed.set_thumbnail(url=bot_avatar_img)
-    embed.set_footer(text=f"Original website: https://www.mbenzin.cz")
-
-    await ctx.send(embed=embed)
-
-def main():
+async def main():
+    await load()
     discord_token = load_config()
-    
-    bot.run(discord_token)
+    await bot.start(discord_token)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
