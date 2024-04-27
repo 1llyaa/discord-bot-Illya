@@ -61,7 +61,8 @@ def get_gas_prices(city: str):
 
 
 def gasprices_embed(city: str):
-    city = "".join(city)
+    city = city.split(" ")
+    city = "-".join(city)
     # debug
     print(city)
 

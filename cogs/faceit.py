@@ -86,9 +86,13 @@ class Faceit(commands.Cog):
     # async def test(self, interaction: discord.Interaction):
     #     await interaction.response.send_message(f"Hello this is test slash command {interaction.user.mention}")
     @app_commands.command(name="faceitelo", description="Check elo of certain player on faceit")
-    @app_commands.describe(game="cs2/csgo", nickname="Your nickname on faceit")
-    async def faceitelo(self, interaction: discord.Interaction, game: str, nickname: str):
-        embed = FaceitEloCheck(game, nickname).get_faceit_data_embed()
+    @app_commands.describe(game="Choose from cs2 and csgo", nickname="Your nickname on faceit")
+    @app_commands.choices(game=[
+        discord.app_commands.Choice(name="CS2", value="cs2"),
+        discord.app_commands.Choice(name="CSGO", value="csgo")
+    ])
+    async def faceitelo(self, interaction: discord.Interaction, game: discord.app_commands.Choice[str], nickname: str):
+        embed = FaceitEloCheck(game.value, nickname).get_faceit_data_embed()
         await interaction.response.send_message(embed=embed)
 
 
