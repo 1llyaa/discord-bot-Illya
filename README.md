@@ -1,6 +1,8 @@
 # 1llya's Discord Bot
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Discord](https://img.shields.io/badge/Join%20my-Discord-7289da.svg)]
+
 
 ## Description
 
