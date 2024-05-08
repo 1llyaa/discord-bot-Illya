@@ -2,6 +2,7 @@ import discord
 import datetime
 import requests
 from bs4 import BeautifulSoup
+import aiohttp
 from tinydb import TinyDB, Query
 from discord.ext import commands
 from discord import app_commands
@@ -18,64 +19,7 @@ headers = {
 }
 
 cached_results = {}
-def get_hltv_data(nickname: str):
-    player = db_hltv.search(User.name == nickname)
-    player_url = dict(player[0])["url"]
 
-    response = requests.get(player_url, headers=headers)
-    response_settings = requests.get(f"https://prosettings.net/players/{nickname}/", headers=headers)
-
-    if response.status_code != 200:
-        # debug status code
-        # print(response.status_code)
-        get_hltv_data(nickname)
-    else:
-        data = response.text
-        soup = BeautifulSoup(data, "lxml")
-        soup2 = BeautifulSoup(response_settings.text, "lxml")
-
-        player_stats = soup.find_all("div", class_="stats-row")
-        player_stats_dict = {}
-        for player_stat in player_stats:
-            player_stats_dict.update(
-                {player_stat.select("span")[0].text.replace(" ", "").replace("Rating1.0", "Rating").replace("Rating2.0", "Rating"): player_stat.select("span")[1].text})
-
-        player_bodyshot_png = soup2.find("img", class_="attachment-player_bio_card size-player_bio_card wp-post-image edge-images-img edge-images-img--eager").get("src")
-
-        try:
-            real_name = soup.find(class_="summaryBodyshot").get("alt")
-        except AttributeError:
-            real_name = soup.find(class_="summarySquare").get("alt")
-        try:
-            age = soup.find(class_="summaryPlayerAge").text
-        except AttributeError:
-            age = None
-
-        try:
-            team = soup.find(class_="a-reset text-ellipsis").text
-        except AttributeError:
-            team = "No team"
-
-        try:
-            kast = soup.find_all(class_="summaryStatBreakdownDataValue")[2].text
-        except AttributeError:
-            kast = None
-
-        try:
-            impact = soup.find_all(class_="summaryStatBreakdownDataValue")[3].text
-        except AttributeError:
-            impact = None
-
-        flag = soup.find(class_="flag").get("title")
-
-        player_stats_dict.update({"PlayerBodyShot": player_bodyshot_png, "RealName": real_name, "Age": age, "Team": team, "KAST": kast, "IMPACT": impact, "Flag": flag})
-
-        if player_stats_dict == {}:
-            get_hltv_data(nickname)
-        else:
-            # print(player_stats_dict)
-            # dict(player_stats_dict)["Totalkills"]
-            return player_stats_dict
 class Menu(discord.ui.View):
     def __init__(self, name: str, player_stats_dict: dict):
         super().__init__()
@@ -211,16 +155,88 @@ class MenuHLTV(commands.Cog):
     @app_commands.command(name="hltvstats", description="Check HLTV stats of your favourite player")
     @app_commands.describe(nickname="nickname of certain player")
     async def menu_slash(self, interaction: discord.Interaction, nickname: str):
+        await interaction.response.defer()
+
         if nickname in cached_results:
             player_stats_dict = cached_results[nickname]
         else:
-            # If not cached, retrieve data using get_hltv_data function
-            player_stats_dict = get_hltv_data(nickname)
+            # If not cached, retrieve data using get_hltv_data function asynchronously
+            player_stats_dict = await self.get_hltv_data_async(nickname)
             # Cache the result
             cached_results[nickname] = player_stats_dict
+
         view = Menu(nickname, player_stats_dict)
         view.add_item(discord.ui.Button(label="URL Button", emoji="🌐", style=discord.ButtonStyle.link, url="https://github.com/1llyaa/discord-bot-Illya"))
-        await interaction.response.send_message(embed=view.pages(), view=view, ephemeral=True)
+        await interaction.followup.send(embed=view.pages(), view=view)
+
+    async def get_hltv_data_async(self, nickname: str):
+        player = db_hltv.search(User.name == nickname)
+        player_url = dict(player[0])["url"]
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(player_url, headers=headers) as response:
+                if response.status != 200:
+                    # debug status code
+                    # print(response.status_code)
+                    await self.get_hltv_data_async(nickname)
+                else:
+                    data = await response.text()
+
+                    soup = BeautifulSoup(data, "lxml")
+                    response_settings = await session.get(f"https://prosettings.net/players/{nickname}/",
+                                                          headers=headers)
+                    soup2 = BeautifulSoup(await response_settings.text(), "lxml")
+
+                    player_stats = soup.find_all("div", class_="stats-row")
+                    player_stats_dict = {}
+                    for player_stat in player_stats:
+                        player_stats_dict.update(
+                            {player_stat.select("span")[0].text.replace(" ", "").replace("Rating1.0",
+                                                                                         "Rating").replace(
+                                "Rating2.0", "Rating"): player_stat.select("span")[1].text})
+                    try:
+                        player_bodyshot_png = soup2.find("img",
+                                                         class_="attachment-player_bio_card size-player_bio_card wp-post-image edge-images-img edge-images-img--eager").get(
+                            "src")
+                    except AttributeError:
+                        player_bodyshot_png = None
+
+                    try:
+                        real_name = soup.find(class_="summaryBodyshot").get("alt")
+                    except AttributeError:
+                        real_name = soup.find(class_="summarySquare").get("alt")
+                    try:
+                        age = soup.find(class_="summaryPlayerAge").text
+                    except AttributeError:
+                        age = None
+
+                    try:
+                        team = soup.find(class_="a-reset text-ellipsis").text
+                    except AttributeError:
+                        team = "No team"
+
+                    try:
+                        kast = soup.find_all(class_="summaryStatBreakdownDataValue")[2].text
+                    except AttributeError:
+                        kast = None
+
+                    try:
+                        impact = soup.find_all(class_="summaryStatBreakdownDataValue")[3].text
+                    except AttributeError:
+                        impact = None
+
+                    flag = soup.find(class_="flag").get("title")
+
+                    player_stats_dict.update(
+                        {"PlayerBodyShot": player_bodyshot_png, "RealName": real_name, "Age": age, "Team": team,
+                         "KAST": kast, "IMPACT": impact, "Flag": flag})
+
+                    if player_stats_dict == {}:
+                        await self.get_hltv_data_async(nickname)
+                    else:
+                        # print(player_stats_dict)
+                        # dict(player_stats_dict)["Totalkills"]
+                        return player_stats_dict
 
     async def cog_command_error(self, ctx, error):
         print(error)
