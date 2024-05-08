@@ -1,4 +1,5 @@
 import discord
+import datetime
 from discord.ext import commands
 from discord import app_commands
 
@@ -11,6 +12,14 @@ class Menu(discord.ui.View):
 
         self.value = None
         self.page_number = 1
+
+
+        self.page_2 = discord.Embed(color=discord.Color.red(), title="Page 2",
+                                  description="This is page 2"
+                                  )
+        self.page_3 = discord.Embed(color=discord.Color.red(), title="Page 3",
+                                  description="This is page 3"
+                                  )
 
     @discord.ui.button(emoji="⬅", style=discord.ButtonStyle.grey)
     async def left(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -25,38 +34,56 @@ class Menu(discord.ui.View):
     def pages(self):
 
         if self.page_number == 1:
-            embed = discord.Embed(color=discord.Color.red(), title="Page 1",
-                                  description="This is page 1"
-                                  )
-            embed.set_thumbnail(url=bot_avatar_img)
-
+            embed = self.page01()
             return embed
 
         elif self.page_number == 2:
-            embed = discord.Embed(color=discord.Color.red(), title="Page 2",
-                                  description="This is page 2"
-                                  )
+            embed = self.page_2
             embed.set_thumbnail(url=bot_avatar_img)
 
             return embed
 
         elif self.page_number == 3:
-            embed = discord.Embed(color=discord.Color.red(), title="Page 3",
-                                  description="This is page 3"
-                                  )
+            embed = self.page_3
             embed.set_thumbnail(url=bot_avatar_img)
 
+            return embed
+
+        elif self.page_number == 4:
+            embed = self.page04()
             return embed
 
         else:
             self.page_number = 1
-            embed = discord.Embed(color=discord.Color.red(), title="Page 1",
+            embed = self.page01()
+            return embed
+    def page01(self):
+        embed = discord.Embed(color=discord.Color.red(), title="Page 1",
                                   description="This is page 1"
                                   )
-            embed.set_thumbnail(url=bot_avatar_img)
+        embed.set_thumbnail(url=bot_avatar_img)
+        return embed
+    def page04(self):
+        embed = discord.Embed(title="Player name",
+                              url="https://example.com",
+                              description="This is Player name statistics",
+                              colour=0xc01c28)
 
-            return embed
+        embed.set_author(name="1llya's bot")
 
+        embed.add_field(name="Nationality 🌎",
+                        value="Ukraine",
+                        inline=True)
+        embed.add_field(name="Team 🎮",
+                        value="Natus Vincere",
+                        inline=True)
+
+        embed.set_image(
+            url="https://img-cdn.hltv.org/playerbodyshot/4NNsZrSGWLr9mZNt0Pe3KS.png?ixlib=java-2.1.0&w=400&s=4484cc99087121a6f9877d3742717444")
+
+        embed.set_thumbnail(
+            url="https://img-cdn.hltv.org/teamlogo/9iMirAi7ArBLNU8p3kqUTZ.svg?ixlib=java-2.1.0&s=4dd8635be16122656093ae9884675d0c")
+        return embed
 
 class MenuCommands(commands.Cog):
     def __init__(self, bot):
