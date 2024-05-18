@@ -2,14 +2,11 @@ import discord
 import asyncio
 import toml
 import os
-from tinydb import TinyDB, Query
 from discord.ext import commands
 from discord import app_commands
-from bs4 import BeautifulSoup
+
 
 # current database is made just for one server, need to add function to check server id and create database based on server id.
-db = TinyDB("quotes.json")
-Todo = Query()
 
 bot_avatar_img = "https://cdn.discordapp.com/attachments/1071136297533579334/1219639688026132553/1llya_AI_avatar_Men_Czech_nationality_has_glassses_on_face_litt_ce1b968d-0ce3-4157-a616-a001c51d8642.png?ex=660c08f9&is=65f993f9&hm=0c5076e7006684155e9a49ffc942b41107a46322d0eb00e18feaa7dff14c6295&"
 bot = commands.Bot(command_prefix=".", help_command=None, intents=discord.Intents.all())
